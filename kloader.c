@@ -1,28 +1,17 @@
 /*
- * Copyright 2014, winocm. <winocm@icloud.com>
+ * Авторские права winocm, 2014 год. <winocm@icloud.com>
  * 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
+ * Эта программа защищена лицензией GNU и свободна к распространению
+ * в рамках данной лицензии
+ * ChiptuneXT, 2015 - Русификация
  * $Id$
  */
 /*
  * kloader
- * Requires iOS 6.x or 7.x. (This version only.)
+ * Требует iOS 6.x или 7.x. (Только эти версии)
  *
- * Remap addresses:
- * 0x7fe00000 -> 0x9fe00000 (0x5fe00000) iBSS (jump-to only.)
+ * Переадресация адресов:
+ * 0x7fe00000 -> 0x9fe00000 (0x5fe00000) iBSS (только jump-to.)
  *
  * xcrun -sdk iphoneos clang kloader.c -arch armv7 -framework IOKit -framework CoreFoundation -no-integrated-as \
  *     -DINLINE_IT_ALL=1 -Wall -o kloader -miphoneos-version-min=6.0; ldid -Stfp0.plist kloader
@@ -44,7 +33,7 @@ extern mach_port_t IOPMFindPowerManagement(mach_port_t);
 extern kern_return_t IOPMSleepSystem(mach_port_t);
 
 /*
- * ARM page bits for L1 sections.
+ * ARM страница для кеша первого уровня (L1).
  */
 #define L1_SHIFT            20  /* log2(1MB) */
 
@@ -71,10 +60,10 @@ extern kern_return_t IOPMSleepSystem(mach_port_t);
 #define TTB_OFFSET(vaddr)    ((vaddr >> L1_SHIFT) << PFN_SHIFT)
 
 /*
- * RAM physical base begin. 
+ * Начинается физическая основа RAM. 
  */
 #define S5L8930_PHYS_OFF    0x40000000
-#define S5L8940_PHYS_OFF    0x80000000  /* Note: RAM base is identical for 8940-8955. */
+#define S5L8940_PHYS_OFF    0x80000000  /* Note: Основа ОЗУ идентифицируется для 8940-8955. */
 
 uint32_t PHYS_OFF = S5L8930_PHYS_OFF;
 
@@ -582,7 +571,7 @@ static int insn_str_imm_rn(uint16_t * i)
         return 0;
 }
 
-// Given an instruction, search backwards until an instruction is found matching the specified criterion.
+// С учетом инструкции, ищем в обратном направлении пока она не подойдет по особым критериям.
 static uint16_t *find_last_insn_matching(uint32_t region, uint8_t * kdata, size_t ksize, uint16_t * current_instruction, int (*match_func) (uint16_t *))
 {
     while ((uintptr_t) current_instruction > (uintptr_t) kdata) {
@@ -846,10 +835,10 @@ static void generate_ttb_entries(void)
 #if SPURIOUS_DEBUG_OUTPUT
     printf("remap -> 0x%08x => 0x%08x (TTE: 0x%08x)\n", ttb_remap_addr_base, phys_addr_remap, L1_PROTO_TTE(phys_addr_remap));
 
-    printf("TTE offset begin for shadowmap: 0x%08x\n" "TTE offset end for shadowmap:   0x%08x\n" "TTE size:                       0x%08x\n", SHADOWMAP_BEGIN_OFF, SHADOWMAP_END_OFF, SHADOWMAP_SIZE);
+    printf("TTE смещен в теневую память: 0x%08x\n" "TTE смещен в конец теневой памяти:   0x%08x\n" "Размер TTE :                       0x%08x\n", SHADOWMAP_BEGIN_OFF, SHADOWMAP_END_OFF, SHADOWMAP_SIZE);
 #endif
 
-    printf("New TTEs generated, base address for remap: 0x%08x, physBase: 0x%08x\n", PHYS_OFF, phys_addr_remap);
+    printf("Новые TTEs сгенерированы, адрес base для переназначения: 0x%08x, physBase: 0x%08x\n", PHYS_OFF, phys_addr_remap);
     return;
 }
 
@@ -865,7 +854,7 @@ int main(int argc, char *argv[])
     struct stat st;
 
     if (argc != 2) {
-        printf("usage: %s [loadfile]\n" "This will destroy the current running OS instance and fire up the loaded image.\n" "You have been warned.\n", argv[0]);
+        printf("использование: %s [loadfile]\n" "Это уничтожит работающую систему и загрузит образ.\n" "Вы были предупреждены.\n", argv[0]);
         return -1;
     }
 
@@ -951,7 +940,7 @@ int main(int argc, char *argv[])
     pointer_t buf;
 
     if (!p) {
-        printf("failed to malloc memory for kernel dump...\n");
+        printf("неудалось выполнить malloc memory для дампа ядра...\n");
         return -1;
     }
     while (addr < (kernel_base + DMPSIZE)) {
@@ -968,7 +957,7 @@ int main(int argc, char *argv[])
      * kernel dumped, now find pmap. 
      */
     uint32_t kernel_pmap = kernel_base + 0x1000 + find_pmap_location(kernel_base, (uint8_t *) p, DMPSIZE);
-    printf("kernel pmap is at 0x%08x.\n", kernel_pmap);
+    printf("kernel pmap на 0x%08x.\n", kernel_pmap);
 
     /*
      * Read for kernel_pmap, dereference it for pmap_store. 
@@ -995,8 +984,8 @@ int main(int argc, char *argv[])
     vm_write(kernel_task, tte_virt + tte_off, buf, sz);
 
     printf("======================================================================================\n");
-    printf("!!!! Kernel TTE entries written. System stability is no longer guaranteed.\n");
-    printf("!!!! Security has also been reduced by an exponential factor. You have been warned.\n");
+    printf("!!!! TTE ядра записаны. Стабильность системы больше не гарантируется.\n");
+    printf("!!!! Безопасность тоже стемится к нулю. Вы были предупреждены.\n");
     printf("======================================================================================\n");
 
     if (signal(SIGINT, SIG_IGN) != SIG_IGN)
@@ -1007,7 +996,7 @@ int main(int argc, char *argv[])
      */
     FILE *f = fopen(argv[1], "rb");
     if (!f) {
-        printf("Failed to open iBEC. Rebooting momentarily...\n");
+        printf("Невозможно открыть iBEC. Немедленная перезагрузка...\n");
         sleep(3);
         reboot(0);
     }
@@ -1018,25 +1007,25 @@ int main(int argc, char *argv[])
     void *vp = malloc(length);
     fread(vp, length, 1, f);
     fclose(f);
-    printf("Read bootloader into buffer %p, length %d\n", vp, length);
+    printf("Читаю bootloader в буфер %p, длинной %d\n", vp, length);
 
     bcopy((void *) vp, (void *) 0x7fe00000, length);
 
     /*
-     * Verify ARM header. 
+     * Проверяю ARM header. 
      */
     if (*(uint32_t *) 0x7fe00000 != 0xea00000e) {
-        printf("This doesn't seem like an ARM image, perhaps it failed to copy? Continuing though.\n");
+        printf("Это не похоже на образ ARM, наверное это неудачно скопировалось? Пробуем продолжить.\n");
     }
 
-    printf("Image information: %s\n", (char *) 0x7fe00000 + 0x200);
-    printf("Image information: %s\n", (char *) 0x7fe00000 + 0x240);
-    printf("Image information: %s\n", (char *) 0x7fe00000 + 0x280);
+    printf("Информация образа: %s\n", (char *) 0x7fe00000 + 0x200);
+    printf("Информация образа: %s\n", (char *) 0x7fe00000 + 0x240);
+    printf("Информация образа: %s\n", (char *) 0x7fe00000 + 0x280);
 
     free(vp);
 
     /*
-     * iBEC copied, we need to copy over the shellcode now. 
+     * iBEC скопирована, мы должны скопировать сейчас через шеллкод. 
      */
     uint32_t sysent_common = 0x1000 + find_syscall0(kernel_base + 0x1000, (uint8_t *) p, DMPSIZE) + SHADOWMAP_BEGIN;
     printf("sysent_common_base: 0x%08x\n", sysent_common);
@@ -1045,10 +1034,10 @@ int main(int argc, char *argv[])
      * fuck evasi0n7 
      */
     if (*(uint32_t *) (sysent_common) == 0) {
-        printf("iOS 7 detected, adjusting base to 0x%08x = 0x%08x\n", sysent_common, *(uint32_t *) (sysent_common));
+        printf("iOS 7 обнаружена, перемещаю base в 0x%08x = 0x%08x\n", sysent_common, *(uint32_t *) (sysent_common));
         sysent_common += 4;
         if (*(uint32_t *) (sysent_common) == 0) {
-            printf("Something is severely wrong (blaming iOS 7 anyhow). Rebooting momentarily.\n");
+            printf("Что-то сильно не так (проблема с iOS 7/8). Перезагружаюсь незамедлительно.\n");
             sleep(3);
             reboot(0);
         }
@@ -1068,10 +1057,10 @@ int main(int argc, char *argv[])
     bcopy((void *) &shellcode_begin, (void *) 0x7f000c00, (uint32_t) ((uintptr_t) & shellcode_end - (uintptr_t) & shellcode_begin));
     *(uint32_t *) sysent_common = 0x7f000c01;
 
-    printf("Running shellcode now.\n");
+    printf("Запускаю шеллкод.\n");
     syscall(0);
 
-    printf("Syncing disks.\n");
+    printf("Синхронизирую диски.\n");
     int diskSync;
     for (diskSync = 0; diskSync < 10; diskSync++)
         sync();
@@ -1088,15 +1077,15 @@ int main(int argc, char *argv[])
 #endif
 
     while (1) {
-        printf("Magic happening now. (attempted!)\n");
+        printf("Сейчас происходит магия. (попытаемся!)\n");
         mach_port_t fb = IOPMFindPowerManagement(MACH_PORT_NULL);
         if (fb != MACH_PORT_NULL) {
             kern_return_t kr = IOPMSleepSystem(fb);
             if (kr) {
-                err(1, "IOPMSleepSystem returned %x\n", kr);
+                err(1, "IOPMSleepSystem возвращен %x\n", kr);
             }
         } else {
-            err(1, "failed to get PM root port\n");
+            err(1, "невозможно получить PM корневой порт\n");
         }
         sleep(3);
     }
