@@ -1,22 +1,30 @@
-ios-kexec-utils
+ios-kexec-utils (РУССКАЯ ВЕРСИЯ)
 ===============
 
-A miscellany of utilities designed to help you bootstrap
-another operating system on an iOS device. They're probably crap.
+Данный набор утилит позволит исполнить произвольный код из-под запущенной ОС (bootstrap)
+а также сторонную ОС на устройстве под управлением iOS. Они немного дерьмовые.
 
-You deal with them. No support/warranty implied/given. 
+Никаких гарантий и помощи. Строить коммунизм с помощью этих утилит следует самому.
+Внимание: этот метод требует осторожности в использовании.
 
-Warning: there are severe caveats with this method.
+Утилиты включают (частично дублировано из opensn0w-X):
 
-Utilities included (and duplicated from opensn0w-X):
+* img3maker - Используется для создания собственного IMG3 файла и позволяет правильно начать исполнение. 
+root # ibsspatch [iBSS расшифрованный (вход)] [iBSS "модифированный" (выход)] 
+* ibsspatch - Данная программа отключает проверку подписи iBSS на релизных прошивках и позволяет загружать модифицированное ядро.
+Образец:> root # ibsspatch /var/mobile/images/iBSS.n88ap.RELEASE_decrypted.dfu /var/mobile/images/iBSS.n88ap.RELEASE_patched.dfu 
+* kloader - Используется для загрузки любого IMG3 в ОЗУ и исполняет его. Можно использовать для начала загрузки цепи загрузки (dualboot).
+* multi_kloader - Как и kloader, но размещает два модифицрованных IMG3 файла в ОЗУ.
 
-	* img3maker - Image3 file maker, needed for the decrypted boot chain.
-	* ibsspatch - iBSS patcher for iOS 7, creates a generic patched iBSS for boot.
-	* kloader - Image loader for the kernel, bootstraps custom image in RAM.
-	* multi_kloader - Image loader for two images in memory. See source for boot
-	                  protocol convention.
+Используя эти утилиты вместе вы сможете достичь удивительных вещей! 
 
-Using these utilities in unison will let you do awesome things.
 
-(This is one of the last public projects I will push for now.
- Personal reasons, mainly stress related.)
+Компиляция:
+=========
+
+Этот релиз может быть собран как стандартный Apple B&I или Darwin project.
+
+$ git clone git://github.com/chiptuneXT/ios-kexec-utils
+$ cd ios-kexec-utils
+$ mkdir -p sym obj dst
+$ make install RC_ARCHS=armv7 SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS6.0.sdk OBJROOT=$(pwd)/obj DSTROOT=$(pwd)/dst SYMROOT=$(pwd)/sym
